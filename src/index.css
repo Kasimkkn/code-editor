@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,19 +38,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -99,5 +93,98 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Cosmic Editor Custom Styles */
+@layer utilities {
+  .glow-border {
+    border-image: linear-gradient(45deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3)) 1;
+    box-shadow: 
+      0 0 10px rgba(59, 130, 246, 0.1),
+      inset 0 0 10px rgba(59, 130, 246, 0.05);
+  }
+  
+  .glow-text {
+    text-shadow: 
+      0 0 10px rgba(59, 130, 246, 0.5),
+      0 0 20px rgba(59, 130, 246, 0.3),
+      0 0 30px rgba(59, 130, 246, 0.1);
+  }
+  
+  .cosmic-gradient {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 1) 0%,
+      rgba(30, 41, 59, 0.95) 25%,
+      rgba(59, 130, 246, 0.1) 50%,
+      rgba(139, 92, 246, 0.1) 75%,
+      rgba(236, 72, 153, 0.05) 100%
+    );
+  }
+
+  .cursor-glow {
+    animation: cursor-pulse 1.5s infinite;
+  }
+
+  @keyframes cursor-pulse {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(96, 165, 250, 0.5);
+    }
+    50% {
+      box-shadow: 
+        0 0 10px rgba(96, 165, 250, 0.8),
+        0 0 20px rgba(96, 165, 250, 0.4),
+        0 0 30px rgba(96, 165, 250, 0.2);
+    }
+  }
+
+  .selection-glow {
+    background: rgba(59, 130, 246, 0.2);
+    box-shadow: 
+      0 0 5px rgba(59, 130, 246, 0.3),
+      inset 0 0 5px rgba(59, 130, 246, 0.1);
+  }
+
+  .syntax-keyword {
+    color: #60a5fa;
+    font-weight: 600;
+    text-shadow: 0 0 3px rgba(96, 165, 250, 0.3);
+  }
+
+  .syntax-string {
+    color: #34d399;
+    text-shadow: 0 0 3px rgba(52, 211, 153, 0.3);
+  }
+
+  .syntax-comment {
+    color: #94a3b8;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  .syntax-number {
+    color: #fbbf24;
+    text-shadow: 0 0 3px rgba(251, 191, 36, 0.3);
+  }
+
+  .scroll-glow::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scroll-glow::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: 4px;
+  }
+
+  .scroll-glow::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), rgba(139, 92, 246, 0.4));
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+
+  .scroll-glow::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.6), rgba(139, 92, 246, 0.6));
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
   }
 }
