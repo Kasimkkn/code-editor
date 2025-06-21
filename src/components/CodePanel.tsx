@@ -1,10 +1,8 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { AutoComplete } from './AutoComplete';
+import { BracketMatcher, EditorHistory, MultiCursorManager, TextChangeCommand } from '@/utils/editorAlgorithms';
 import { SyntaxHighlighter } from '@/utils/syntaxHighlighter';
-import { BracketMatcher } from '@/utils/editorAlgorithms';
-import { EditorHistory, TextChangeCommand } from '@/utils/editorAlgorithms';
-import { MultiCursorManager, CursorPosition } from '@/utils/editorAlgorithms';
+import React, { useEffect, useRef, useState } from 'react';
+import { AutoComplete } from './AutoComplete';
 
 interface CodePanelProps {
   code: string;
@@ -15,21 +13,21 @@ interface CodePanelProps {
   onRedo?: () => void;
 }
 
-export const CodePanel: React.FC<CodePanelProps> = ({ 
-  code, 
-  onChange, 
-  language, 
+export const CodePanel: React.FC<CodePanelProps> = ({
+  code,
+  onChange,
+  language,
   searchMatches = [],
   onUndo,
-  onRedo 
+  onRedo
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
   const [showAutoComplete, setShowAutoComplete] = useState(false);
   const [autoCompletePosition, setAutoCompletePosition] = useState({ x: 0, y: 0 });
   const [currentWord, setCurrentWord] = useState('');
-  const [bracketMatches, setBracketMatches] = useState<Array<{start: number, end: number, type: string}>>([]);
-  
+  const [bracketMatches, setBracketMatches] = useState<Array<{ start: number, end: number, type: string }>>([]);
+
   // Initialize utilities
   const syntaxHighlighter = new SyntaxHighlighter();
   const bracketMatcher = new BracketMatcher();
@@ -84,7 +82,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
     const textarea = e.target;
     const selectionStart = textarea.selectionStart;
     const selectionEnd = textarea.selectionEnd;
-    
+
     // Create command for undo/redo
     const command = new TextChangeCommand(
       selectionStart,
@@ -94,10 +92,10 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       onChange,
       () => code
     );
-    
+
     // Don't execute command here, just update state
     onChange(newCode);
-    
+
     // Update cursor position
     const lines = newCode.substring(0, selectionStart).split('\n');
     setCursorPosition({
@@ -113,7 +111,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
     if (currentWord.length > 1 && /^[a-zA-Z_$]/.test(currentWord)) {
       setCurrentWord(currentWord);
       setShowAutoComplete(true);
-      
+
       // Calculate position for autocomplete dropdown
       const rect = textarea.getBoundingClientRect();
       setAutoCompletePosition({
@@ -133,14 +131,14 @@ export const CodePanel: React.FC<CodePanelProps> = ({
     const textBeforeCursor = code.substring(0, selectionStart);
     const words = textBeforeCursor.split(/\s+/);
     const currentWordStart = selectionStart - words[words.length - 1].length;
-    
-    const newCode = code.substring(0, currentWordStart) + 
-                   suggestion + 
-                   code.substring(selectionStart);
-    
+
+    const newCode = code.substring(0, currentWordStart) +
+      suggestion +
+      code.substring(selectionStart);
+
     onChange(newCode);
     setShowAutoComplete(false);
-    
+
     // Focus back to textarea and set cursor position
     setTimeout(() => {
       textarea.focus();
@@ -152,7 +150,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
   // Render highlighted code with search matches and bracket highlights
   const renderHighlightedCode = () => {
     let highlightedCode = syntaxHighlighter.highlightCode(code);
-    
+
     // Add search match highlights
     if (searchMatches.length > 0) {
       // This is a simplified approach - in a real implementation, 
@@ -161,7 +159,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
         // Add search highlight styling
       });
     }
-    
+
     // Add bracket match highlights
     bracketMatches.forEach(match => {
       if (match.type === 'matched') {
@@ -170,7 +168,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
         // Add unmatched bracket highlighting (error)
       }
     });
-    
+
     return highlightedCode;
   };
 
@@ -189,7 +187,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
 
       {/* Code Display (Syntax Highlighted) */}
       <div className="absolute left-12 top-0 right-0 p-4 font-mono text-sm leading-6 pointer-events-none overflow-hidden">
-        <pre 
+        <pre
           className="whitespace-pre-wrap text-white"
           dangerouslySetInnerHTML={{ __html: renderHighlightedCode() }}
         />
@@ -212,14 +210,13 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       {bracketMatches.map((match, index) => (
         <div
           key={index}
-          className={`absolute pointer-events-none w-2 h-6 rounded ${
-            match.type === 'matched' ? 'bg-green-400/30' : 'bg-red-400/30'
-          }`}
+          className={`absolute pointer-events-none w-2 h-6 rounded ${match.type === 'matched' ? 'bg-green-400/30' : 'bg-red-400/30'
+            }`}
           style={{
             left: `calc(3rem + ${(match.start % 80) * 0.6}em)`, // Simplified positioning
             top: `calc(1rem + ${Math.floor(match.start / 80) * 1.5}rem)`,
-            boxShadow: match.type === 'matched' 
-              ? '0 0 5px rgba(34, 197, 94, 0.5)' 
+            boxShadow: match.type === 'matched'
+              ? '0 0 5px rgba(34, 197, 94, 0.5)'
               : '0 0 5px rgba(239, 68, 68, 0.5)'
           }}
         />
@@ -239,7 +236,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       />
 
       {/* Cursor Glow Effect */}
-      <div 
+      <div
         className="absolute pointer-events-none w-0.5 h-6 bg-blue-400 cursor-glow"
         style={{
           left: `calc(3rem + ${cursorPosition.column * 0.6}em)`,
@@ -256,14 +253,6 @@ export const CodePanel: React.FC<CodePanelProps> = ({
           onClose={() => setShowAutoComplete(false)}
         />
       )}
-
-      {/* Algorithm Status Display */}
-      <div className="absolute bottom-4 right-4 bg-slate-800/70 backdrop-blur-sm rounded-lg p-2 text-xs text-slate-400 glow-border">
-        <div>🧩 Brackets: Stack-based matching</div>
-        <div>🎯 Multi-cursor: Two-pointer technique</div>
-        <div>🎨 Syntax: Regex tokenizer</div>
-        <div>⏮️ History: {editorHistory.current.canUndo() ? 'Can undo' : 'No undo'}</div>
-      </div>
     </div>
   );
 };

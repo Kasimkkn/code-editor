@@ -1,11 +1,7 @@
 
-# 🚀 Cosmic Code Editor
+# 🚀 Code Editor
 
 A next-generation **AI-powered code editing platform** built with **ReactJS** and enhanced with **advanced Data Structures & Algorithms** to provide intelligent features for professional developers.
-
-## 🌐 Live Preview
-
-**URL**: https://lovable.dev/projects/7f79dc64-089f-41be-b792-fefd248af9ed
 
 ## 🧠 Advanced DSA-Powered Features
 
