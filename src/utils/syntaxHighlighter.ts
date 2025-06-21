@@ -721,3 +721,12 @@ export class SyntaxHighlighter {
     };
   }
 }
+
+// Export the main highlight function that was missing
+export const highlightSyntax = (code: string, language: string): string => {
+  const highlighter = new SyntaxHighlighter(language);
+  return highlighter.highlightCode(code);
+};
+
+// Export the class as default for advanced usage
+export default SyntaxHighlighter;

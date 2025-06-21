@@ -2,7 +2,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { CodePanel } from './CodePanel';
 import { EditorTabs } from './EditorTabs';
-import { EditorSidebar } from './EditorSidebar';
 import { StatusBar } from './StatusBar';
 import { DiffViewer } from './DiffViewer';
 import { useCodeStorage } from '@/hooks/useCodeStorage';
@@ -48,7 +47,6 @@ export default App;`,
   ]);
 
   const [activeTabId, setActiveTabId] = useState('1');
-  const [sidebarVisible, setSidebarVisible] = useState(true);
   const [diffViewerVisible, setDiffViewerVisible] = useState(false);
   const [cursorPosition, setCursorPosition] = useState<CursorPosition>({ line: 0, column: 0, index: 0 });
 
@@ -124,10 +122,6 @@ export default App;`,
             e.preventDefault();
             handleNewTab();
             break;
-          case '`':
-            e.preventDefault();
-            setSidebarVisible(prev => !prev);
-            break;
         }
       }
     };
@@ -142,13 +136,12 @@ export default App;`,
       saveEditorState({
         tabs,
         activeTabId,
-        sidebarVisible,
         cursorPosition
       });
     }, 5000);
 
     return () => clearInterval(saveInterval);
-  }, [tabs, activeTabId, sidebarVisible, cursorPosition, saveEditorState]);
+  }, [tabs, activeTabId, cursorPosition, saveEditorState]);
 
   // Load editor state on mount
   useEffect(() => {
@@ -156,7 +149,6 @@ export default App;`,
     if (savedState && savedState.tabs && savedState.tabs.length > 0) {
       setTabs(savedState.tabs);
       setActiveTabId(savedState.activeTabId || savedState.tabs[0].id);
-      setSidebarVisible(savedState.sidebarVisible ?? true);
     }
   }, [loadEditorState]);
 
@@ -177,60 +169,46 @@ export default App;`,
   }
 
   return (
-    <div className="h-screen bg-slate-900 flex overflow-hidden">
-      {/* Sidebar */}
-      {sidebarVisible && (
-        <div className="w-64 flex-shrink-0">
-          <EditorSidebar 
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabSelect={handleTabChange}
-            onNewTab={handleNewTab}
-          />
-        </div>
-      )}
+    <div className="h-screen bg-slate-900 flex flex-col overflow-hidden">
+      {/* Tabs */}
+      <div className="flex-shrink-0">
+        <EditorTabs 
+          tabs={tabs.map(tab => ({
+            id: tab.id,
+            name: tab.name,
+            active: tab.id === activeTabId,
+            modified: tab.isModified
+          }))}
+          onTabChange={handleTabChange}
+          onTabClose={handleTabClose}
+          onNewTab={handleNewTab}
+        />
+      </div>
 
-      {/* Main editor area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Tabs */}
-        <div className="flex-shrink-0">
-          <EditorTabs 
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabChange={handleTabChange}
-            onTabClose={handleTabClose}
-            onNewTab={handleNewTab}
-          />
-        </div>
-
-        {/* Editor content */}
-        <div className="flex-1 min-h-0">
-          {diffViewerVisible ? (
-            <DiffViewer 
-              onClose={() => setDiffViewerVisible(false)}
-            />
-          ) : (
-            <CodePanel
-              code={activeTab.content}
-              language={activeTab.language}
-              onChange={handleCodeChange}
-              onCursorChange={handleCursorChange}
-              showLineNumbers={true}
-              readOnly={false}
-              className="h-full"
-            />
-          )}
-        </div>
-
-        {/* Status bar */}
-        <div className="flex-shrink-0">
-          <StatusBar 
-            cursorPosition={cursorPosition}
+      {/* Editor content */}
+      <div className="flex-1 min-h-0">
+        {diffViewerVisible ? (
+          <DiffViewer />
+        ) : (
+          <CodePanel
+            code={activeTab.content}
             language={activeTab.language}
-            isModified={activeTab.isModified}
-            fileName={activeTab.name}
+            onChange={handleCodeChange}
+            onCursorChange={handleCursorChange}
+            showLineNumbers={true}
+            readOnly={false}
+            className="h-full"
           />
-        </div>
+        )}
+      </div>
+
+      {/* Status bar */}
+      <div className="flex-shrink-0">
+        <StatusBar 
+          cursorPosition={cursorPosition}
+          language={activeTab.language}
+          fileName={activeTab.name}
+        />
       </div>
     </div>
   );
