@@ -11,72 +11,7 @@ export const CosmicCodeEditor = () => {
   const [showFindReplace, setShowFindReplace] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
   const [searchMatches, setSearchMatches] = useState<number[]>([]);
-  const [code, setCode] = useState(`// Welcome to Cosmic Code Editor - DSA-Powered
-import React, { useState, useEffect } from 'react';
-
-const CosmicApp = () => {
-  const [count, setCount] = useState(0);
-  const [users, setUsers] = useState([]);
-  
-  useEffect(() => {
-    console.log('Component mounted');
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch('/api/users');
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
-    }
-  };
-
-  const handleClick = () => {
-    setCount(prev => prev + 1);
-  };
-
-  const processData = (items) => {
-    // Bracket matching example
-    const filtered = items.filter(item => {
-      return item.active && item.score > 0;
-    });
-    
-    return filtered.map(item => ({
-      ...item,
-      processed: true
-    }));
-  };
-
-  return (
-    <div className="app">
-      <h1>Hello, Cosmic Universe!</h1>
-      <p>Advanced features powered by DSA algorithms:</p>
-      <ul>
-        <li>🔍 KMP/Boyer-Moore pattern matching</li>
-        <li>⚡ Trie-based auto-completion</li>
-        <li>🧩 Stack-based bracket matching</li>
-        <li>🎯 Multi-cursor with two-pointer technique</li>
-        <li>💡 Array-based undo/redo system</li>
-      </ul>
-      
-      <button onClick={handleClick}>
-        Count: {count}
-      </button>
-      
-      <div className="users">
-        {users.map(user => (
-          <div key={user.id} className="user-card">
-            {user.name} - {user.email}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default CosmicApp;`);
+  const [code, setCode] = useState<string>();
 
   // Save code to localStorage
   useEffect(() => {

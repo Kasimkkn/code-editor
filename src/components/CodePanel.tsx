@@ -172,13 +172,13 @@ export const CodePanel: React.FC<CodePanelProps> = ({
     return highlightedCode;
   };
 
-  const lines = code.split('\n');
+  const lines = code?.split('\n');
 
   return (
     <div className="flex-1 relative bg-slate-900/30 backdrop-blur-sm glow-border">
       {/* Line Numbers */}
       <div className="absolute left-0 top-0 w-12 bg-slate-800/50 border-r border-blue-500/20 p-2 text-sm text-slate-400 font-mono leading-6">
-        {lines.map((_, index) => (
+        {lines?.map((_, index) => (
           <div key={index} className="text-right pr-2 select-none">
             {index + 1}
           </div>
