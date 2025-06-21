@@ -9,17 +9,13 @@ interface CodePanelProps {
   onChange: (code: string) => void;
   language: string;
   searchMatches?: number[];
-  onUndo?: () => void;
-  onRedo?: () => void;
 }
 
 export const CodePanel: React.FC<CodePanelProps> = ({
   code,
   onChange,
   language,
-  searchMatches = [],
-  onUndo,
-  onRedo
+  searchMatches = []
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
@@ -47,14 +43,18 @@ export const CodePanel: React.FC<CodePanelProps> = ({
         if (e.key === 'z' && !e.shiftKey) {
           e.preventDefault();
           if (editorHistory.current.canUndo()) {
-            editorHistory.current.undo();
-            onUndo?.();
+            const success = editorHistory.current.undo();
+            if (success) {
+              console.log('Undo successful');
+            }
           }
-        } else if ((e.key === 'y') || (e.key === 'z' && e.shiftKey)) {
+        } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
           e.preventDefault();
           if (editorHistory.current.canRedo()) {
-            editorHistory.current.redo();
-            onRedo?.();
+            const success = editorHistory.current.redo();
+            if (success) {
+              console.log('Redo successful');
+            }
           }
         } else if (e.key === 'd') {
           e.preventDefault();
@@ -75,7 +75,7 @@ export const CodePanel: React.FC<CodePanelProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [code, onUndo, onRedo]);
+  }, [code]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newCode = e.target.value;
@@ -93,8 +93,8 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       () => code
     );
 
-    // Don't execute command here, just update state
-    onChange(newCode);
+    // Execute command for undo/redo tracking
+    editorHistory.current.executeCommand(command);
 
     // Update cursor position
     const lines = newCode.substring(0, selectionStart).split('\n');
@@ -115,8 +115,8 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       // Calculate position for autocomplete dropdown
       const rect = textarea.getBoundingClientRect();
       setAutoCompletePosition({
-        x: rect.left + 50, // Offset for line numbers
-        y: rect.top + (lines.length - 1) * 24 + 40 // Approximate line height
+        x: rect.left + 50,
+        y: rect.top + (lines.length - 1) * 24 + 40
       });
     } else {
       setShowAutoComplete(false);
@@ -150,35 +150,35 @@ export const CodePanel: React.FC<CodePanelProps> = ({
   // Render highlighted code with search matches and bracket highlights
   const renderHighlightedCode = () => {
     let highlightedCode = syntaxHighlighter.highlightCode(code);
-
-    // Add search match highlights
-    if (searchMatches.length > 0) {
-      // This is a simplified approach - in a real implementation, 
-      // you'd need to carefully handle HTML escaping and positioning
-      searchMatches.forEach(matchIndex => {
-        // Add search highlight styling
-      });
-    }
-
-    // Add bracket match highlights
-    bracketMatches.forEach(match => {
-      if (match.type === 'matched') {
-        // Add matched bracket highlighting
-      } else {
-        // Add unmatched bracket highlighting (error)
-      }
-    });
-
     return highlightedCode;
   };
 
-  const lines = code?.split('\n');
+  // Get bracket color based on type and nesting level
+  const getBracketColor = (match: { start: number, end: number, type: string }, index: number) => {
+    if (match.type === 'unmatched') {
+      return 'bg-red-400/30 shadow-red-500/50';
+    }
+    
+    // Cycle through colors for nested brackets
+    const colors = [
+      'bg-blue-400/30 shadow-blue-500/50',
+      'bg-green-400/30 shadow-green-500/50',
+      'bg-purple-400/30 shadow-purple-500/50',
+      'bg-yellow-400/30 shadow-yellow-500/50',
+      'bg-pink-400/30 shadow-pink-500/50',
+      'bg-cyan-400/30 shadow-cyan-500/50'
+    ];
+    
+    return colors[index % colors.length];
+  };
+
+  const lines = code?.split('\n') || [''];
 
   return (
     <div className="flex-1 relative bg-slate-900/30 backdrop-blur-sm glow-border">
       {/* Line Numbers */}
       <div className="absolute left-0 top-0 w-12 bg-slate-800/50 border-r border-blue-500/20 p-2 text-sm text-slate-400 font-mono leading-6">
-        {lines?.map((_, index) => (
+        {lines.map((_, index) => (
           <div key={index} className="text-right pr-2 select-none">
             {index + 1}
           </div>
@@ -210,14 +210,26 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       {bracketMatches.map((match, index) => (
         <div
           key={index}
-          className={`absolute pointer-events-none w-2 h-6 rounded ${match.type === 'matched' ? 'bg-green-400/30' : 'bg-red-400/30'
-            }`}
+          className={`absolute pointer-events-none w-2 h-6 rounded ${getBracketColor(match, index)}`}
           style={{
-            left: `calc(3rem + ${(match.start % 80) * 0.6}em)`, // Simplified positioning
+            left: `calc(3rem + ${(match.start % 80) * 0.6}em)`,
             top: `calc(1rem + ${Math.floor(match.start / 80) * 1.5}rem)`,
-            boxShadow: match.type === 'matched'
-              ? '0 0 5px rgba(34, 197, 94, 0.5)'
-              : '0 0 5px rgba(239, 68, 68, 0.5)'
+            boxShadow: `0 0 8px ${match.type === 'matched' ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`
+          }}
+        />
+      ))}
+
+      {/* Search Match Highlights */}
+      {searchMatches.map((matchIndex, index) => (
+        <div
+          key={index}
+          className="absolute pointer-events-none bg-yellow-400/30 rounded"
+          style={{
+            left: `calc(3rem + ${(matchIndex % 80) * 0.6}em)`,
+            top: `calc(1rem + ${Math.floor(matchIndex / 80) * 1.5}rem)`,
+            width: '4rem',
+            height: '1.5rem',
+            boxShadow: '0 0 8px rgba(251, 191, 36, 0.6)'
           }}
         />
       ))}
@@ -233,14 +245,16 @@ export const CodePanel: React.FC<CodePanelProps> = ({
           textShadow: '0 0 8px rgba(96, 165, 250, 0.5)'
         }}
         spellCheck={false}
+        placeholder="// Start coding in JavaScript/React..."
       />
 
       {/* Cursor Glow Effect */}
       <div
-        className="absolute pointer-events-none w-0.5 h-6 bg-blue-400 cursor-glow"
+        className="absolute pointer-events-none w-0.5 h-6 bg-blue-400 cursor-glow animate-pulse"
         style={{
           left: `calc(3rem + ${cursorPosition.column * 0.6}em)`,
           top: `calc(1rem + ${(cursorPosition.line - 1) * 1.5}rem)`,
+          boxShadow: '0 0 15px rgba(96, 165, 250, 0.8), 0 0 30px rgba(96, 165, 250, 0.4)'
         }}
       />
 

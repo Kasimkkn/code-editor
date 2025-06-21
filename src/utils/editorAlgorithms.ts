@@ -1,4 +1,3 @@
-
 // Bracket matching using stack
 export class BracketMatcher {
   private openBrackets = new Set(['(', '[', '{']);
@@ -112,7 +111,7 @@ export class EditorHistory {
       this.currentIndex = this.history.length - 1;
     }
     
-    command.execute();
+    // Don't execute here - it's already executed in the component
     this.saveToStorage();
   }
 
